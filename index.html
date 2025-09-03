@@ -8,6 +8,26 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* 補充：讓兩欄式結構更易讀 */
+    table.two-col th {
+      width: 140px;
+      white-space: nowrap;
+    }
+    table.two-col td {
+      width: auto;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      border: 0;
+    }
+  </style>
 </head>
 <body>
   <main class="container">
@@ -28,20 +48,26 @@
       </div>
 
       <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th id="target-title">反彈目標</th>
-              <th>0.382</th>
-              <th>0.5</th>
-              <th>0.618</th>
-            </tr>
-          </thead>
+        <table class="two-col">
           <tbody>
             <tr>
-              <td><span id="targetresult" class="mono">--</span></td>
+              <th>係數 k</th>
+              <td>
+                <span id="target-title">反彈目標</span>
+                <!-- 目標值仍需存在以供複製功能使用，但依照你的結構不顯示在畫面上 -->
+                <span id="targetresult" class="mono sr-only">--</span>
+              </td>
+            </tr>
+            <tr>
+              <th>0.382</th>
               <td><span id="v-0.382" class="mono">--</span></td>
+            </tr>
+            <tr>
+              <th>0.5</th>
               <td><span id="v-0.5" class="mono">--</span></td>
+            </tr>
+            <tr>
+              <th>0.618</th>
               <td><span id="v-0.618" class="mono">--</span></td>
             </tr>
           </tbody>
@@ -90,6 +116,7 @@
       if (isFinite(lowest) && isFinite(highest) && isFinite(k)) {
         targetVal = Math.pow(lowest, (1 - k)) * Math.pow(highest, k);
       }
+      // 仍然依需求四捨五入保留 2 位，雖不顯示，但供複製用
       targetEl.textContent = round2(targetVal);
 
       // 斐波那契等比（線性內插常見作法）：lowest + ratio * (highest - lowest)
@@ -112,15 +139,14 @@
       const v50 = document.getElementById('v-0.5').textContent.trim();
       const v618 = document.getElementById('v-0.618').textContent.trim();
 
-      // 按需求的字串：
+      // 指定格式：
       // [targetresult] + \n + "0.382" + [v-0.382] + \n + "0.5=" + [v-0.5] + \n + "0.618" + [v-0.618]
-      const payload = `${t}\n0.382=${v382}\n0.5=${v50}\n0.618${v618}`;
+      const payload = `${t}\n0.382${v382}\n0.5=${v50}\n0.618${v618}`;
 
       try {
         await navigator.clipboard.writeText(payload);
         showCopied('已複製到剪貼簿！');
       } catch (err) {
-        // 後備方案（選取+execCommand）
         const ta = document.createElement('textarea');
         ta.value = payload;
         document.body.appendChild(ta);
