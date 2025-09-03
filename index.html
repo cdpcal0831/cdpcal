@@ -9,23 +9,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* 補充：讓兩欄式結構更易讀 */
-    table.two-col th {
-      width: 140px;
-      white-space: nowrap;
-    }
-    table.two-col td {
-      width: auto;
-    }
+    table.two-col th { width: 140px; white-space: nowrap; }
+    table.two-col td { width: auto; }
     .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0,0,0,0);
-      border: 0;
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); border: 0;
     }
   </style>
 </head>
@@ -42,10 +30,6 @@
         <label for="highest">最高</label>
         <input id="highest" type="number" step="0.01" placeholder="輸入最高價值" />
       </div>
-      <div class="row">
-        <label for="k">k</label>
-        <input id="k" type="number" step="0.001" value="0.618" min="0" max="1" />
-      </div>
 
       <div class="table-wrap">
         <table class="two-col">
@@ -54,7 +38,6 @@
               <th>係數 k</th>
               <td>
                 <span id="target-title">反彈目標</span>
-                <!-- 目標值仍需存在以供複製功能使用，但依照你的結構不顯示在畫面上 -->
                 <span id="targetresult" class="mono sr-only">--</span>
               </td>
             </tr>
@@ -82,21 +65,18 @@
   </main>
 
   <script>
-    // 四捨五入到小數第 2 位
     function round2(n) {
       if (!isFinite(n)) return '--';
       return (Math.round(n * 100) / 100).toFixed(2);
     }
 
-    // 計算與更新畫面
-    function recalc() {
-      const lowestEl = document.getElementById('lowest');
-      const highestEl = document.getElementById('highest');
-      const kEl = document.getElementById('k');
+    function computeGeom(low, high, k) {
+      return Math.pow(low, (1 - k)) * Math.pow(high, k);
+    }
 
-      const lowest = parseFloat(lowestEl.value);
-      const highest = parseFloat(highestEl.value);
-      const k = parseFloat(kEl.value);
+    function recalc() {
+      const lowest = parseFloat(document.getElementById('lowest').value);
+      const highest = parseFloat(document.getElementById('highest').value);
 
       const titleEl = document.getElementById('target-title');
       const targetEl = document.getElementById('targetresult');
@@ -104,44 +84,33 @@
       const v50El = document.getElementById('v-0.5');
       const v618El = document.getElementById('v-0.618');
 
-      // 標題判斷：if [最低價值] <= [最高價的值] then "反彈目標" else "修正目標"
       if (isFinite(lowest) && isFinite(highest)) {
         titleEl.textContent = (lowest <= highest) ? '反彈目標' : '修正目標';
       } else {
         titleEl.textContent = '反彈目標';
       }
 
-      // 主要目標值：value = (Lowest)^(1−k) × (Highest)^k
-      let targetVal = NaN;
-      if (isFinite(lowest) && isFinite(highest) && isFinite(k)) {
-        targetVal = Math.pow(lowest, (1 - k)) * Math.pow(highest, k);
-      }
-      // 仍然依需求四捨五入保留 2 位，雖不顯示，但供複製用
-      targetEl.textContent = round2(targetVal);
-
-      // 斐波那契等比（線性內插常見作法）：lowest + ratio * (highest - lowest)
       let v382 = NaN, v50 = NaN, v618 = NaN;
       if (isFinite(lowest) && isFinite(highest)) {
-        const diff = (highest - lowest);
-        v382 = lowest + 0.382 * diff;
-        v50 = lowest + 0.5 * diff;
-        v618 = lowest + 0.618 * diff;
+        v382 = computeGeom(lowest, highest, 0.382);
+        v50  = computeGeom(lowest, highest, 0.5);
+        v618 = computeGeom(lowest, highest, 0.618);
       }
       v382El.textContent = round2(v382);
-      v50El.textContent = round2(v50);
+      v50El.textContent  = round2(v50);
       v618El.textContent = round2(v618);
+
+      // 存一個參考值（用0.618的值）
+      targetEl.textContent = round2(v618);
     }
 
-    // 複製指定格式
     async function copyBundle() {
-      const t = document.getElementById('targetresult').textContent.trim();
+      const t    = document.getElementById('target-title').textContent.trim();
       const v382 = document.getElementById('v-0.382').textContent.trim();
-      const v50 = document.getElementById('v-0.5').textContent.trim();
+      const v50  = document.getElementById('v-0.5').textContent.trim();
       const v618 = document.getElementById('v-0.618').textContent.trim();
 
-      // 指定格式：
-      // [targetresult] + \n + "0.382" + [v-0.382] + \n + "0.5=" + [v-0.5] + \n + "0.618" + [v-0.618]
-      const payload = `${t}\n0.382${v382}\n0.5=${v50}\n0.618${v618}`;
+      const payload = `${t}\n0.382=${v382}\n0.5=${v50}\n0.618${v618}`;
 
       try {
         await navigator.clipboard.writeText(payload);
@@ -168,13 +137,10 @@
       setTimeout(() => el.textContent = '', 2000);
     }
 
-    // 綁定事件
     document.getElementById('lowest').addEventListener('input', recalc);
     document.getElementById('highest').addEventListener('input', recalc);
-    document.getElementById('k').addEventListener('input', recalc);
     document.getElementById('btn-copy').addEventListener('click', copyBundle);
 
-    // 初始計算
     recalc();
   </script>
 </body>
