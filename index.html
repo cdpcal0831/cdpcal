@@ -134,14 +134,14 @@
 
     // 複製指定格式
     async function copyBundle() {
-      const t = document.getElementById('target-title').textContent.trim();
+      const t = document.getElementById('targetresult').textContent.trim();
       const v382 = document.getElementById('v-0.382').textContent.trim();
       const v50 = document.getElementById('v-0.5').textContent.trim();
       const v618 = document.getElementById('v-0.618').textContent.trim();
 
       // 指定格式：
       // [targetresult] + \n + "0.382" + [v-0.382] + \n + "0.5=" + [v-0.5] + \n + "0.618" + [v-0.618]
-      const payload = `${t}\n0.382=${v382}\n0.5=${v50}\n0.618${v618}`;
+      const payload = `${t}\n0.382${v382}\n0.5=${v50}\n0.618${v618}`;
 
       try {
         await navigator.clipboard.writeText(payload);
