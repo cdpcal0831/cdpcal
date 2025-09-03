@@ -1,289 +1,155 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CDP計算</title>
-  <meta name="description" content="輸入最低價與最高價，計算 0.382 / 0.5 / 0.618 權重的幾何平均值。" />
-  <style>
-    :root {
-      --bg: #f6f7fb;
-      --surface: #ffffff;
-      --text: #0f172a;      /* slate-900 */
-      --muted: #475569;     /* slate-600 */
-      --border: #e5e7eb;    /* gray-200 */
-      --accent: #0ea5e9;    /* sky-500 */
-      --accent-600: #0284c7;/* sky-600 */
-      --good: #16a34a;      /* green-600 */
-      --warn: #f59e0b;      /* amber-500 */
-      --danger: #ef4444;    /* red-500 */
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0b1220;
-        --surface: #0f172a;
-        --text: #e5e7eb;
-        --muted: #94a3b8;
-        --border: #1f2937;
-      }
-    }
-
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      background: radial-gradient(1200px 1200px at 80% -10%, rgba(14,165,233,.08), transparent 60%), var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-    }
-
-    .container { max-width: 920px; margin: 0 auto; padding: 24px; }
-    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
-    h1 { font-size: clamp(1.25rem, 2.2vw, 1.75rem); margin: 0; letter-spacing: .2px; }
-    .sub { color: var(--muted); font-size: .95rem; }
-
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 10px 30px rgba(2,8,23,.05); padding: 18px; }
-
-    .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
-    @media (min-width: 640px) { .grid { grid-template-columns: repeat(2,1fr); } }
-
-    label { display: block; font-weight: 650; margin-bottom: 8px; }
-
-    .field { position: relative; }
-    input[type="number"] {
-      width: 100%;
-      padding: 14px 16px 14px 44px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text);
-      font-size: 1.05rem;
-      transition: border .18s ease, box-shadow .18s ease;
-      appearance: textfield;
-    }
-    input[type="number"]:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 4px rgba(14,165,233,.15);
-    }
-    .prefix {
-      position: absolute; left: 12px; top: 50%; translate: 0 -50%;
-      font-weight: 600; color: var(--muted); opacity: .9; pointer-events: none;
-    }
-
-    .hint { font-size: .9rem; color: var(--muted); margin-top: 4px; }
-
-    .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-top: 10px; }
-    button {
-      border: 1px solid var(--border);
-      background: linear-gradient(#fff, #f8fafc);
-      color: var(--text);
-      padding: 10px 14px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: transform .04s ease, box-shadow .18s ease, border .18s ease;
-    }
-    button.primary { background: linear-gradient(var(--accent), var(--accent-600)); color: #fff; border: 0; }
-    button:active { transform: translateY(1px); }
-
-    .status { margin: 14px 0 0; font-size: .95rem; }
-    .status.warn { color: var(--warn); }
-
-    .results { margin-top: 18px; }
-    .hidden { display: none !important; }
-
-    table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 14px; border: 1px solid var(--border); }
-    thead th {
-      font-size: .95rem; text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border);
-    }
-    tbody td { padding: 12px 16px; border-top: 1px dashed var(--border); }
-    tbody tr:first-child td { border-top: 1px solid var(--border); }
-    .k {
-      font-weight: 700; background: rgba(14,165,233,.08);
-      display: inline-flex; align-items: center; justify-content: center; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(14,165,233,.25);
-      min-width: 72px; text-align: center;
-    }
-
-    .copy {
-      font-size: .85rem; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border); background: #fff; color: var(--muted);
-    }
-
-    .empty { text-align: center; color: var(--muted); padding: 20px 8px; }
-
-    footer { color: var(--muted); font-size: .85rem; margin-top: 18px; text-align: center; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-  </style>
+  <title>黃金切割率</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div>
-        <h1>CDP Calculator</h1>
-        <div class="sub">輸入 <strong>最低價</strong> 與 <strong>最高價</strong>，即時計算 <span class="mono">k ∈ {0.382, 0.5, 0.618}</span> 的幾何加權：<span class="mono">最低^(1−k) × 最高^k</span></div>
-      </div>
-    </header>
+  <main class="container">
+    <h1 class="page-title">黃金切割率</h1>
 
     <section class="card">
-      <div class="grid">
-        <div>
-          <label for="low">最低價</label>
-          <div class="field">
-            <span class="prefix">$</span>
-            <input id="low" type="number" step="any" inputmode="decimal" placeholder="請輸入正數，例如 77" aria-describedby="lowHint" />
-          </div>
-          <div id="lowHint" class="hint">The field supports both integer and decimal inputs.</div>
-        </div>
-        <div>
-          <label for="high">最高價</label>
-          <div class="field">
-            <span class="prefix">$</span>
-            <input id="high" type="number" step="any" inputmode="decimal" placeholder="請輸入正數，例如 99.9" aria-describedby="highHint" />
-          </div>
-
-        </div>
+      <div class="row">
+        <label for="lowest">最低</label>
+        <input id="lowest" type="number" step="0.01" placeholder="輸入最低價值" />
+      </div>
+      <div class="row">
+        <label for="highest">最高</label>
+        <input id="highest" type="number" step="0.01" placeholder="輸入最高價值" />
+      </div>
+      <div class="row">
+        <label for="k">k</label>
+        <input id="k" type="number" step="0.001" value="0.618" min="0" max="1" />
       </div>
 
-      <div class="actions">
-        <button id="clearBtn" type="button" aria-label="清除">清除</button>
-        <button id="calcBtn" class="primary" type="button" aria-label="計算">計算</button>
-      </div>
-
-      <div id="warning" class="status warn hidden">提示：最低價大於最高價，請確認輸入。</div>
-
-      <div id="empty" class="empty">輸入兩個價格後，將自動顯示計算結果。</div>
-
-      <div id="results" class="results hidden" role="region" aria-live="polite">
+      <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th style="width: 35%">係數 (k)</th>
-              <th>計算值 <span class="mono">= 最低^(1−k) × 最高^k</span></th>
-              <th style="width: 1%"></th>
+              <th id="target-title">反彈目標</th>
+              <th>0.382</th>
+              <th>0.5</th>
+              <th>0.618</th>
             </tr>
           </thead>
           <tbody>
-            <tr data-k="0.382">
-              <td><span class="k">0.382</span></td>
-              <td id="v-0.382" class="mono">—</td>
-              <td><button class="copy" data-for="v-0.382">複製</button></td>
-            </tr>
-            <tr data-k="0.5">
-              <td><span class="k">0.5</span></td>
-              <td id="v-0.5" class="mono">—</td>
-              <td><button class="copy" data-for="v-0.5">複製</button></td>
-            </tr>
-            <tr data-k="0.618">
-              <td><span class="k">0.618</span></td>
-              <td id="v-0.618" class="mono">—</td>
-              <td><button class="copy" data-for="v-0.618">複製</button></td>
+            <tr>
+              <td><span id="targetresult" class="mono">--</span></td>
+              <td><span id="v-0.382" class="mono">--</span></td>
+              <td><span id="v-0.5" class="mono">--</span></td>
+              <td><span id="v-0.618" class="mono">--</span></td>
             </tr>
           </tbody>
         </table>
       </div>
-    </section>
 
-    <footer>
-      Formula：<span class="mono">value = (Lowest)^(1−k) × (Hightest)^k</span> ・ Only two values are valid will be automatically calculated.
-    </footer>
-  </div>
+      <div class="actions">
+        <button id="btn-copy" type="button">複製</button>
+        <span id="copied-msg" class="muted" aria-live="polite"></span>
+      </div>
+    </section>
+  </main>
 
   <script>
-    const $low = document.getElementById('low');
-    const $high = document.getElementById('high');
-    const $calc = document.getElementById('calcBtn');
-    const $clear = document.getElementById('clearBtn');
-    const $warning = document.getElementById('warning');
-    const $results = document.getElementById('results');
-    const $empty = document.getElementById('empty');
-
-    const KS = [0.382, 0.5, 0.618];
-
-    function parseNum(el) {
-      const v = parseFloat(String(el.value).replace(/,/g, ''));
-      return Number.isFinite(v) ? v : null;
+    // 四捨五入到小數第 2 位
+    function round2(n) {
+      if (!isFinite(n)) return '--';
+      return (Math.round(n * 100) / 100).toFixed(2);
     }
 
-    function format(n) {
-      return new Intl.NumberFormat('zh-Hant', { maximumFractionDigits: 8 }).format(n);
-    }
+    // 計算與更新畫面
+    function recalc() {
+      const lowestEl = document.getElementById('lowest');
+      const highestEl = document.getElementById('highest');
+      const kEl = document.getElementById('k');
 
-    function compute(low, high, k) {
-      return Math.pow(low, (1 - k)) * Math.pow(high, k);
-    }
+      const lowest = parseFloat(lowestEl.value);
+      const highest = parseFloat(highestEl.value);
+      const k = parseFloat(kEl.value);
 
-    function update() {
-      const low = parseNum($low);
-      const high = parseNum($high);
+      const titleEl = document.getElementById('target-title');
+      const targetEl = document.getElementById('targetresult');
+      const v382El = document.getElementById('v-0.382');
+      const v50El = document.getElementById('v-0.5');
+      const v618El = document.getElementById('v-0.618');
 
-      const hasBoth = low !== null && high !== null && low > 0 && high > 0;
-      const warn = low !== null && high !== null && low > high;
-      $warning.classList.toggle('hidden', !warn);
-
-      if (!hasBoth) {
-        $results.classList.add('hidden');
-        $empty.classList.remove('hidden');
-        return;
+      // 標題判斷：if [最低價值] <= [最高價的值] then "反彈目標" else "修正目標"
+      if (isFinite(lowest) && isFinite(highest)) {
+        titleEl.textContent = (lowest <= highest) ? '反彈目標' : '修正目標';
+      } else {
+        titleEl.textContent = '反彈目標';
       }
 
-      // Calculate
-      KS.forEach(k => {
-        const val = compute(low, high, k);
-        const cell = document.getElementById(`v-${k}`);
-        cell.textContent = format(val);
-      });
+      // 主要目標值：value = (Lowest)^(1−k) × (Highest)^k
+      let targetVal = NaN;
+      if (isFinite(lowest) && isFinite(highest) && isFinite(k)) {
+        targetVal = Math.pow(lowest, (1 - k)) * Math.pow(highest, k);
+      }
+      targetEl.textContent = round2(targetVal);
 
-      // Show
-      $empty.classList.add('hidden');
-      $results.classList.remove('hidden');
-
-      // Keep sharable URL in sync
-      const params = new URLSearchParams();
-      params.set('low', $low.value);
-      params.set('high', $high.value);
-      history.replaceState({}, '', `${location.pathname}?${params}`);
+      // 斐波那契等比（線性內插常見作法）：lowest + ratio * (highest - lowest)
+      let v382 = NaN, v50 = NaN, v618 = NaN;
+      if (isFinite(lowest) && isFinite(highest)) {
+        const diff = (highest - lowest);
+        v382 = lowest + 0.382 * diff;
+        v50 = lowest + 0.5 * diff;
+        v618 = lowest + 0.618 * diff;
+      }
+      v382El.textContent = round2(v382);
+      v50El.textContent = round2(v50);
+      v618El.textContent = round2(v618);
     }
 
-    function copyFrom(cellId) {
-      const text = document.getElementById(cellId)?.textContent?.trim();
-      if (!text || text === '—') return;
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.querySelector(`[data-for="${cellId}"]`);
-        if (!btn) return;
-        const old = btn.textContent;
-        btn.textContent = '已複製';
-        btn.disabled = true;
-        setTimeout(() => { btn.textContent = old; btn.disabled = false; }, 900);
-      }).catch(() => {
-        alert('無法複製到剪貼簿，請手動選取文字。');
-      });
+    // 複製指定格式
+    async function copyBundle() {
+      const t = document.getElementById('targetresult').textContent.trim();
+      const v382 = document.getElementById('v-0.382').textContent.trim();
+      const v50 = document.getElementById('v-0.5').textContent.trim();
+      const v618 = document.getElementById('v-0.618').textContent.trim();
+
+      // 按需求的字串：
+      // [targetresult] + \n + "0.382" + [v-0.382] + \n + "0.5=" + [v-0.5] + \n + "0.618" + [v-0.618]
+      const payload = `${t}\n0.382=${v382}\n0.5=${v50}\n0.618${v618}`;
+
+      try {
+        await navigator.clipboard.writeText(payload);
+        showCopied('已複製到剪貼簿！');
+      } catch (err) {
+        // 後備方案（選取+execCommand）
+        const ta = document.createElement('textarea');
+        ta.value = payload;
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          showCopied('已複製到剪貼簿！');
+        } catch (e) {
+          showCopied('複製失敗，請手動選取。');
+        } finally {
+          document.body.removeChild(ta);
+        }
+      }
     }
 
-    document.querySelectorAll('.copy').forEach(btn => {
-      btn.addEventListener('click', () => copyFrom(btn.dataset.for));
-    });
+    function showCopied(msg) {
+      const el = document.getElementById('copied-msg');
+      el.textContent = msg;
+      setTimeout(() => el.textContent = '', 2000);
+    }
 
-    $calc.addEventListener('click', update);
-    [$low, $high].forEach(el => el.addEventListener('input', update));
+    // 綁定事件
+    document.getElementById('lowest').addEventListener('input', recalc);
+    document.getElementById('highest').addEventListener('input', recalc);
+    document.getElementById('k').addEventListener('input', recalc);
+    document.getElementById('btn-copy').addEventListener('click', copyBundle);
 
-    $clear.addEventListener('click', () => {
-      $low.value = '';
-      $high.value = '';
-      $results.classList.add('hidden');
-      $empty.classList.remove('hidden');
-      $warning.classList.add('hidden');
-      history.replaceState({}, '', location.pathname);
-      $low.focus();
-    });
-
-    // Prefill from URL if present
-    (function initFromQuery() {
-      const p = new URLSearchParams(location.search);
-      if (p.has('low')) $low.value = p.get('low');
-      if (p.has('high')) $high.value = p.get('high');
-      update();
-    })();
+    // 初始計算
+    recalc();
   </script>
 </body>
 </html>
