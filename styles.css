@@ -31,7 +31,7 @@ input[type=number]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 
 .table-wrap{margin-top:10px;overflow-x:auto;}
 table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;}
 thead th{background:var(--accent-50);text-align:left;padding:14px 16px;border-bottom:1px solid var(--border);font-weight:800;color:#0b1220;font-size:18px;}
-tbody th{width:160px;background:var(--accent-50);padding:14px 16px;text-align:left;border-right:1px solid var(--border);font-weight:800;color:#0b1220;font-size:22px;white-space:nowrap;}
+tbody th{width:100px;background:var(--accent-50);padding:14px 10px;text-align:left;border-right:1px solid var(--border);font-weight:800;color:#0b1220;font-size:22px;white-space:nowrap;}
 tbody td{padding:14px 16px;border-top:1px dashed var(--border);font-size:20px;}
 tbody tr:first-child td{border-top:none;}
 .mono{font-family:var(--mono);}
