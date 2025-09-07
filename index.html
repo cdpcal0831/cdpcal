@@ -86,7 +86,7 @@
       const v618El = document.getElementById('v-0.618');
 
       if (isFinite(lowest) && isFinite(highest)) {
-        titleEl.textContent = (lowest <= highest) ? '反彈目標' : '修正目標';
+        titleEl.textContent = ( highest <= lowest) ? '反彈目標' : '修正目標';
       } else {
         titleEl.textContent = '反彈目標';
       }
