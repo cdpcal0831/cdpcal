@@ -86,16 +86,16 @@
       const v618El = document.getElementById('v-0.618');
 
       if (isFinite(lowest) && isFinite(highest)) {
-        titleEl.textContent = ( lowest <= highest) ? '反彈目標' : '修正目標';
+        titleEl.textContent = ( lowest <= highest) ? '修正目標' : '反彈目標';
       } else {
         titleEl.textContent = '反彈目標';
       }
 
       let v382 = NaN, v50 = NaN, v618 = NaN;
       if (isFinite(lowest) && isFinite(highest)) {
-        v382 = computeGeom(lowest, highest, 0.382);
+        v382 = computeGeom(lowest, highest, 0.618);
         v50  = computeGeom(lowest, highest, 0.5);
-        v618 = computeGeom(lowest, highest, 0.618);
+        v618 = computeGeom(lowest, highest, 0.382);
       }
       v382El.textContent = round2(v382);
       v50El.textContent  = round2(v50);
